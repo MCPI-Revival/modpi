@@ -1,0 +1,7 @@
+# Python stuff
+__pycache__/
+
+# Builds
+build/
+*.pyc
+*.so
