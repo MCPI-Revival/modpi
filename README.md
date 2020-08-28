@@ -3,14 +3,15 @@ Minecraft Pi API extensions.
 
 ## Getting started
 ### Prerequisites
-To use the ModPi API you need to have `Python >= 3.7.x` pre-installed.
+To use the ModPi API you need to have `Python >= 3.7.x` and [`libmcpi`](https://github.com/MCPI-Devs/libmcpi) pre-installed.
 
 ### Installation
-To install ModPi, download or clone the repository and install the Python 3.x module using `pip`:
+To install ModPi, download or clone the repository, install the Python 3.x module using `pip` and build the patch using `make`:
 ```shell
 git clone https://github.com/MCPI-Devs/modpi.git
 cd modpi
 pip3 install .
+make
 ```
 
 ## API
