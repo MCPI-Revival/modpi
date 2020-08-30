@@ -14,6 +14,15 @@ pip3 install .
 make
 ```
 
+You can also install it from the Packagecloud Debian repository:
+```shell
+# If you didn't add the repository yet
+curl -s https://packagecloud.io/install/repositories/Alvarito050506/mcpi-devs/script.deb.sh | sudo bash
+
+# Now the actual installation
+sudo apt-get install libmodpi
+```
+
 ## API
 The ModPi API exposes the following methods through the `ModPi` class:
 

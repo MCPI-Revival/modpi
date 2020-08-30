@@ -5,3 +5,7 @@ __pycache__/
 build/
 *.pyc
 *.so
+
+# Debian
+libmodpi_*-*.deb
+deb/

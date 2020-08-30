@@ -169,6 +169,7 @@ ssize_t sendto(int sockfd, const void* buf, size_t len, int flags, const struct 
 {
 	struct sockaddr_in* addr = (struct sockaddr_in*)dest_addr;
 	int i = 19136;
+	char* char_buff = ((char*)buf);
 
 	if (addr->sin_addr.s_addr == -1 && ntohs(addr->sin_port) == 19135)
 	{
@@ -183,7 +184,7 @@ ssize_t sendto(int sockfd, const void* buf, size_t len, int flags, const struct 
 		}
 		addr->sin_port = htons(19135);
 	}
-	if (((char*)buf)[0] >= 0x80 && ((char*)buf)[10] == 0x82)
+	if (char_buff[0] >= 0x80 && char_buff[10] == 0x82)
 	{
 		inet_ntop(AF_INET, &addr->sin_addr, modpi_data.server_addr, INET_ADDRSTRLEN);
 		modpi_data.server_port[0] = 0x00;
