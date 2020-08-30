@@ -25,7 +25,7 @@ from setuptools import setup, find_packages
 
 setup(
 	name="modpi",
-	version="v0.2.0",
+	version="v0.3.0",
 	description="MCPI API extensions.",
 	author="Alvarito050506",
 	author_email="donfrutosgomez@gmail.com",

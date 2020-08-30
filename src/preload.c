@@ -44,7 +44,7 @@
 #include <types.h>
 
 #ifndef MOD_PI
-#define MOD_PI "v0.1.0"
+#define MOD_PI "v0.2.0"
 
 #endif /* MOD_PI */
 
@@ -59,6 +59,7 @@ int fail = 1;
 int fishing = 1;
 int j = 0;
 int i = 0;
+FILE* username_file;
 
 modpi_data_t modpi_data = {
 	NULL,
@@ -164,12 +165,13 @@ void glFogfv(GLenum pname, const GLfloat* params)
 	}
 }
 
-/* Extends port search: 19132-19139. */
+/* Extends port search (19132-19139) and sets the username. */
 ssize_t sendto(int sockfd, const void* buf, size_t len, int flags, const struct sockaddr* dest_addr, socklen_t addrlen)
 {
 	struct sockaddr_in* addr = (struct sockaddr_in*)dest_addr;
 	int i = 19136;
 	char* char_buff = ((char*)buf);
+	char new_packet[128];
 
 	if (addr->sin_addr.s_addr == -1 && ntohs(addr->sin_port) == 19135)
 	{
@@ -184,11 +186,29 @@ ssize_t sendto(int sockfd, const void* buf, size_t len, int flags, const struct 
 		}
 		addr->sin_port = htons(19135);
 	}
-	if (char_buff[0] >= 0x80 && char_buff[10] == 0x82)
+	if (char_buff[0] >= 0x80 && char_buff[10] == 0x82 && len == 28)
 	{
 		inet_ntop(AF_INET, &addr->sin_addr, modpi_data.server_addr, INET_ADDRSTRLEN);
 		modpi_data.server_port[0] = 0x00;
 		snprintf(modpi_data.server_port, 8, "%i", ntohs(addr->sin_port));
+		memcpy(new_packet, buf, len);
+		i = 0;
+		while (i < 7)
+		{
+			new_packet[13 + i] = modpi_data.player_name[i];
+			i++;
+		}
+		return old_sendto(sockfd, new_packet, len, flags, dest_addr, addrlen);
+	} else if (char_buff[0] == 0x1c)
+	{
+		memcpy(new_packet, buf, len);
+		i = 0;
+		while (i < 7)
+		{
+			new_packet[46 + i] = modpi_data.player_name[i];
+			i++;
+		}
+		return old_sendto(sockfd, new_packet, len, flags, dest_addr, addrlen);
 	}
 	return old_sendto(sockfd, buf, len, flags, dest_addr, addrlen);
 }
@@ -391,6 +411,11 @@ ssize_t send_res(int fd, char* res)
 /* Constructor, gets called before MCPI itself. */
 void __attribute__((constructor)) init()
 {
+	char* config_path;
+	char* username_path;
+	char tmp[7];
+	int sz;
+
 	old_fopen = dlsym(RTLD_NEXT, "fopen");
 	old_sendto = dlsym(RTLD_NEXT, "sendto");
 	old_send = dlsym(RTLD_NEXT, "send");
@@ -405,8 +430,32 @@ void __attribute__((constructor)) init()
 	old_SDL_PollEvent = dlsym(RTLD_NEXT, "SDL_PollEvent");
 
 	old_XCreateWindow = dlsym(RTLD_NEXT, "XCreateWindow");
+
 	modpi_data.player_name = (char*)0x1028ca;
 	unprotect(0x1028ca);
+	config_path = malloc(strlen(getenv("HOME")) + 9);
+	strcpy(config_path, getenv("HOME"));
+	strcat(config_path, "/.mcpil/");
+	mkdir(config_path);
+	username_path = malloc(strlen(config_path) + 13);
+	strcpy(username_path, config_path);
+	strcat(username_path, "username.txt");
+	username_file = fopen(username_path, "r+");
+	if (username_file == NULL)
+	{
+		username_file = fopen(username_path, "w+");
+	}
+	fseek(username_file, 0x00, SEEK_SET);
+	
+	sz = fread(tmp, 1, 7, username_file);
+	if (sz > 0)
+	{
+		strcpy(modpi_data.player_name, tmp);
+		modpi_data.player_name[sz] = 0x00;
+	}
+
+	free(config_path);
+	free(username_path);
 	return;
 }
 
@@ -418,5 +467,8 @@ void __attribute__((destructor)) destroy()
 	{
 		free(modpi_data.world_name);
 	}
+	fseek(username_file, 0x00, SEEK_SET);
+	fwrite(modpi_data.player_name, 1, strlen(modpi_data.player_name), username_file);
+	fclose(username_file);
 	return;
 }
