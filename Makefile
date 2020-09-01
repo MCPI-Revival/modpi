@@ -21,7 +21,7 @@
 
 all:
 	mkdir -p build
-	gcc -fPIC -shared -lmcpi -I./src ./src/preload.c -o ./build/libmodpi.so -Wall
+	gcc -fPIC -shared -lmcpi -I./src -I/usr/include/libpng16 -lpng16 -lz ./src/preload.c -o ./build/libmodpi.so -Wall
 
 install:
 	pip3 install .
@@ -35,7 +35,7 @@ pack:
 	cp ./src/modpi.py ./deb/usr/lib/python3/dist-packages
 	chmod 0755 ./deb/usr/lib/libmodpi.so
 	@echo "Package: libmodpi" > ./deb/DEBIAN/control
-	@echo "Version: 0.3.0" >> ./deb/DEBIAN/control
+	@echo "Version: 0.4.0" >> ./deb/DEBIAN/control
 	@echo "Priority: optional" >> ./deb/DEBIAN/control
 	@echo "Architecture: armhf" >> ./deb/DEBIAN/control
 	@echo "Depends: libmcpi, python3" >> ./deb/DEBIAN/control
@@ -44,7 +44,7 @@ pack:
 	@echo "Vcs-Browser: https://github.com/MCPI-Devs/modpi" >> ./deb/DEBIAN/control
 	@echo "Vcs-Git: https://github.com/MCPI-Devs/modpi.git" >> ./deb/DEBIAN/control
 	@echo "Description: Extensions for the Minecraft Pi API.\n" >> ./deb/DEBIAN/control
-	dpkg-deb -b ./deb/ ./libmodpi_0.3.0-1.deb
+	dpkg-deb -b ./deb/ ./libmodpi_0.4.0-1.deb
 
 clean:
 	rm -rf ./build/

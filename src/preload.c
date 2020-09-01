@@ -44,7 +44,10 @@
 #include <types.h>
 
 #ifndef MOD_PI
-#define MOD_PI "v0.2.0"
+#define MD_MAJOR 0
+#define MD_MINOR 4
+#define MD_PATCH 0
+#define MOD_PI "v0.4.0"
 
 #endif /* MOD_PI */
 
@@ -68,10 +71,11 @@ modpi_data_t modpi_data = {
 	{0x00},
 	{0x00},
 	NULL,
-	{0.0, 0.0, 0.0, 0.0}
+	{0.0, 0.0, 0.0, 0.0},
+	LOCAL
 };
 
-/* [Work In Progress] Dinamyclly change the game mode. */
+/* [Work In Progress] Dinamycally change the game mode. */
 FILE* fopen(const char* filename, const char* mode)
 {
 	FILE* level_dat_file;
@@ -186,7 +190,7 @@ ssize_t sendto(int sockfd, const void* buf, size_t len, int flags, const struct 
 		}
 		addr->sin_port = htons(19135);
 	}
-	if (char_buff[0] >= 0x80 && char_buff[10] == 0x82 && len == 28)
+	if (char_buff[0] >= 0x80 && char_buff[10] == 0x82)
 	{
 		inet_ntop(AF_INET, &addr->sin_addr, modpi_data.server_addr, INET_ADDRSTRLEN);
 		modpi_data.server_port[0] = 0x00;
@@ -198,6 +202,7 @@ ssize_t sendto(int sockfd, const void* buf, size_t len, int flags, const struct 
 			new_packet[13 + i] = modpi_data.player_name[i];
 			i++;
 		}
+		modpi_data.acting_as = CLIENT;
 		return old_sendto(sockfd, new_packet, len, flags, dest_addr, addrlen);
 	} else if (char_buff[0] == 0x1c)
 	{
@@ -209,11 +214,43 @@ ssize_t sendto(int sockfd, const void* buf, size_t len, int flags, const struct 
 			i++;
 		}
 		return old_sendto(sockfd, new_packet, len, flags, dest_addr, addrlen);
+	} else if (char_buff[0] >= 0x80 && char_buff[14] == 0x15)
+	{
+		modpi_data.acting_as = LOCAL;
 	}
 	return old_sendto(sockfd, buf, len, flags, dest_addr, addrlen);
 }
 
-/* [Work In Progress] T-Chat. Stores the message in `t_buff` and then prints it to `stdout`. */
+/* UDP receive from. */
+ssize_t recvfrom(int sockfd, void* buf, size_t len, int flags, struct sockaddr* src_addr, socklen_t* addrlen)
+{
+	struct sockaddr_in* addr;
+	char* char_buff = ((char*)buf);
+	char* cmd;
+	char char_addr[INET_ADDRSTRLEN + 1];
+	int rt = 0;
+
+	rt = old_recvfrom(sockfd, buf, len, flags, src_addr, addrlen);
+	addr = (struct sockaddr_in*)src_addr;
+	inet_ntop(AF_INET, &addr->sin_addr, char_addr, INET_ADDRSTRLEN);
+	if (char_buff[0] >= 0x80 && char_buff[7] == 0xb8)
+	{
+		if (modpi_data.acting_as == CLIENT && strcmp(modpi_data.server_addr, char_addr) == 0)
+		{
+			cmd = malloc(strlen(char_buff + 8) + 1);
+			strcpy(cmd, char_buff + 8);
+			write(api_fd, cmd, strlen(char_buff + 8));
+			write(api_fd, "\n", 1);
+			free(cmd);
+		}
+	} else if (char_buff[0] >= 0x80 && char_buff[10] == 0x82)
+	{
+		modpi_data.acting_as = SERVER;
+	}
+	return rt;
+}
+
+/* [Work In Progress] T-Chat. Stores the message in `t_buff` and then sends it via the API. */
 int SDL_PollEvent(SDL_Event* event)
 {
 	int rt = old_SDL_PollEvent(event);
@@ -274,6 +311,7 @@ ssize_t recv(int sockfd, void* buff, size_t len, int flags)
 {
 	ssize_t sz;
 	char mp_char;
+	char act_mode[3];
 	mcpi_err_t err;
 	mcpi_command_t command;
 
@@ -314,6 +352,7 @@ ssize_t recv(int sockfd, void* buff, size_t len, int flags)
 			} else if (strcmp(command.name, "setPlayerName") == 0 && modpi_data.player_name != NULL && command.argc > 0)
 			{
 				memmove(modpi_data.player_name, command.args[0], 7);
+				strncpy((char*)0x105263, modpi_data.player_name, 7);
 			} else if (strcmp(command.name, "getServerAddr") == 0 && modpi_data.server_addr[0] != 0x00)
 			{
 				send_res(sockfd, modpi_data.server_addr);
@@ -326,9 +365,14 @@ ssize_t recv(int sockfd, void* buff, size_t len, int flags)
 				modpi_data.ambient[1] = (float)atoi(command.args[1]) / 255.0f;
 				modpi_data.ambient[2] = (float)atoi(command.args[2]) / 255.0f;
 				modpi_data.ambient[3] = (float)atoi(command.args[3]) / 255.0f;
+			} else if (strcmp(command.name, "getActMode") == 0)
+			{
+				snprintf(act_mode, 8, "%i", modpi_data.acting_as);
+				send_res(sockfd, act_mode);
 			} else
 			{
 				fail = 0;
+				send_res(sockfd, "Fail");
 			}
 		}
 		i++;
@@ -418,6 +462,7 @@ void __attribute__((constructor)) init()
 
 	old_fopen = dlsym(RTLD_NEXT, "fopen");
 	old_sendto = dlsym(RTLD_NEXT, "sendto");
+	old_recvfrom = dlsym(RTLD_NEXT, "recvfrom");
 	old_send = dlsym(RTLD_NEXT, "send");
 	old_recv = dlsym(RTLD_NEXT, "recv");
 
@@ -433,6 +478,7 @@ void __attribute__((constructor)) init()
 
 	modpi_data.player_name = (char*)0x1028ca;
 	unprotect(0x1028ca);
+	unprotect(0x105263);
 	config_path = malloc(strlen(getenv("HOME")) + 9);
 	strcpy(config_path, getenv("HOME"));
 	strcat(config_path, "/.mcpil/");
@@ -453,6 +499,7 @@ void __attribute__((constructor)) init()
 		strcpy(modpi_data.player_name, tmp);
 		modpi_data.player_name[sz] = 0x00;
 	}
+	strcpy((char*)0x105263, modpi_data.player_name);
 
 	free(config_path);
 	free(username_path);

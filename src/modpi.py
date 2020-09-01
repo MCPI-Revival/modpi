@@ -21,29 +21,52 @@
 #  
 #  
 
+from mcpi import *
+
 class ModPi:
 	def __init__(self, mcpi):
 		self.conn = mcpi.conn;
 
 	def getPlayerName(self):
-		return self.conn.sendReceive("mp.getPlayerName");
+		try:
+			return self.conn.sendReceive("mp.getPlayerName");
+		except connection.RequestError:
+			return "";
 
 	def setPlayerName(self, username):
 		return self.conn.send("mp.setPlayerName", username);
 
 	def getGameMode(self):
-		return int(self.conn.sendReceive("mp.getGameMode")[0]);
+		try:
+			return int(self.conn.sendReceive("mp.getGameMode")[0]);
+		except connection.RequestError:
+			return -1;
 
 	def getWorldName(self):
-		return self.conn.sendReceive("mp.getWorldName");
+		try:
+			return self.conn.sendReceive("mp.getWorldName");
+		except connection.RequestError:
+			return "";
 
 	def getServerAddr(self):
-		return self.conn.sendReceive("mp.getServerAddr");
+		try:
+			return self.conn.sendReceive("mp.getServerAddr");
+		except connection.RequestError:
+			return "";
 
 	def getServerPort(self):
-		return int(self.conn.sendReceive("mp.getServerPort"));
+		try:
+			return int(self.conn.sendReceive("mp.getServerPort"));
+		except connection.RequestError:
+			return -1;
 
 	def setAmbientColor(self, color):
 		if len(color) < 4:
 			return -1;
 		return self.conn.send("mp.setAmbientColor", color[0], color[1], color[2], color[3]);
+
+	def getActMode(self):
+		try:
+			return int(self.conn.sendReceive("mp.getActMode"));
+		except connection.RequestError:
+			return -1;

@@ -24,6 +24,12 @@
 #define TYPES_H
 #include <arpa/inet.h>
 
+typedef enum act_mode_t {
+	SERVER,
+	CLIENT,
+	LOCAL
+} act_mode_t;
+
 typedef struct modpi_data_t {
 	char* world_name;
 	char* player_name;
@@ -32,6 +38,7 @@ typedef struct modpi_data_t {
 	char server_port[9];
 	char* server_name;
 	float ambient[4];
+	act_mode_t acting_as;
 } modpi_data_t;
 
 #endif /* TYPES_H */

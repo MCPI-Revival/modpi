@@ -36,7 +36,7 @@ Returns the current player name.
 Sets the current player name to `username`.
 
 ### `def getGameMode()`
-Returns the game mode of the current world as an interger:
+Returns the game mode of the current world as an integer:
  + 0 = Survival
  + 1 = Creative
 
@@ -51,6 +51,12 @@ Returns the internet port of the current server.
 
 ### `def setAmbientColor(color)`
 Sets the OpenGL fog and clear colors. The `color` argument must be an RGBA tuple, like `(255, 0, 255, 128)`.
+
+### `def getActMode()`
+Returns if the instance of MCPI is acting as Server, Client or Local:
+ + 0 = Server
+ + 1 = Client
+ + 2 = Local
 
 ## FAQ
 ### Where can I find an usage example?
