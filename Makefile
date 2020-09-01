@@ -21,7 +21,7 @@
 
 all:
 	mkdir -p build
-	gcc -fPIC -shared -lmcpi -I./src -I/usr/include/libpng16 -lpng16 -lz ./src/preload.c -o ./build/libmodpi.so -Wall
+	gcc -fPIC -shared -lmcpi -I./src ./src/preload.c -o ./build/libmodpi.so -Wall
 
 install:
 	pip3 install .
