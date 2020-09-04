@@ -29,30 +29,30 @@ The ModPi API exposes the following methods through the `ModPi` class:
 ### `def __init__(mcpi)`
 Initializes the class, `mcpi` must be a `mcpi.minecraft.Minecraft` object.
 
-### `def getPlayerName()`
+### `getPlayerName()`
 Returns the current player name.
 
-### `def setPlayerName(username)`
+### `setPlayerName(username)`
 Sets the current player name to `username`.
 
-### `def getGameMode()`
+### `getGameMode()`
 Returns the game mode of the current world as an integer:
  + 0 = Survival
  + 1 = Creative
 
-### `def getWorldName()`
+### `getWorldName()`
 Returns the name of the current world.
 
-### `def getServerAddr()`
+### `getServerAddr()`
 Returns the IP address or internet domain of the current server.
 
-### `def getServerPort()`
+### `getServerPort()`
 Returns the internet port of the current server.
 
-### `def setAmbientColor(color)`
+### `setAmbientColor(color)`
 Sets the OpenGL fog and clear colors. The `color` argument must be an RGBA tuple, like `(255, 0, 255, 128)`.
 
-### `def getActMode()`
+### `getActMode()`
 Returns if the instance of MCPI is acting as Server, Client or Local:
  + 0 = Server
  + 1 = Client
