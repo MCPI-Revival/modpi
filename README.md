@@ -26,7 +26,7 @@ sudo apt-get install libmodpi
 ## API
 The ModPi API exposes the following methods through the `ModPi` class:
 
-### `def __init__(mcpi)`
+### `__init__(mcpi)`
 Initializes the class, `mcpi` must be a `mcpi.minecraft.Minecraft` object.
 
 ### `getPlayerName()`
