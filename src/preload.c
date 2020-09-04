@@ -44,9 +44,9 @@
 #include <types.h>
 
 #ifndef MOD_PI
-#define MD_MAJOR 0
-#define MD_MINOR 4
-#define MD_PATCH 0
+#define MP_MAJOR 0
+#define MP_MINOR 4
+#define MP_PATCH 0
 #define MOD_PI "v0.4.0"
 
 #endif /* MOD_PI */
@@ -255,8 +255,13 @@ int SDL_PollEvent(SDL_Event* event)
 {
 	int rt = old_SDL_PollEvent(event);
 
-	/* MCPI uses custom events, and the Mojang folks decided that storing the keycode in the (optional) window ID was a good idea. */
-	char chr = (char)event->user.windowID;
+	/*
+	 * MCPI uses custom events, and the Mojang folks decided that storing the keycode in the (optional) window ID was a good idea.
+	 * EDIT: This may be because MCPI uses SDL 1.2, and I'm developing according to the SDL 2 structs/types.
+	 * 
+	 */
+	short key_code = (short)event->user.windowID;
+	char chr = (char)key_code;
 
 	if (event->type == 65538)
 	{
@@ -266,9 +271,16 @@ int SDL_PollEvent(SDL_Event* event)
 		 * 0x00 == Ignore, other "special" keys.
 		 * 
 		 */
-		if (reading == 0 && chr != 0x00 && chr != 0x0d && chr != 0x1b && i < 64)
+		if (reading == 0 && chr >= 0x20 && key_code < 0x80 && i < 64)
 		{
-			t_buff[j] = chr;
+			/* Commands! */
+			if (event->user.code == 1 && chr == '7')
+			{
+				t_buff[j] = '/';
+			} else
+			{
+				t_buff[j] = chr;
+			}
 			event->user.windowID = 0x00; /* Say "ignore" to MCPI. */
 			j++;
 		} else if (reading == 1 && chr == 't')
