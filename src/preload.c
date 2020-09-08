@@ -184,7 +184,7 @@ ssize_t sendto(int sockfd, const void* buf, size_t len, int flags, const struct 
 			addr->sin_port = htons(i);
 			if (old_sendto(sockfd, buf, len, flags, dest_addr, addrlen) < 0)
 			{
-				printf("sendto failed with exit errno %i\n", errno);
+				fprintf(stderr, "sendto failed with exit errno %i\n", errno);
 			}
 			i++;
 		}
@@ -217,6 +217,17 @@ ssize_t sendto(int sockfd, const void* buf, size_t len, int flags, const struct 
 	} else if (char_buff[0] >= 0x80 && char_buff[14] == 0x15)
 	{
 		modpi_data.acting_as = LOCAL;
+	}
+
+	if (char_buff[0] >= 0x80 && char_buff[10] == 0x09 && len == 28 && char_buff[4] == 0x40 && modpi_data.is_sec == 0)
+	{
+		memcpy(new_packet, buf, len);
+		memcpy(new_packet + 28, modpi_data.secret, 4);
+		new_packet[6] = 0xd0;
+		new_packet[27] = 0x31;
+
+		old_sendto(sockfd, new_packet, 32, flags, dest_addr, addrlen);
+		return (ssize_t)len;
 	}
 	return old_sendto(sockfd, buf, len, flags, dest_addr, addrlen);
 }
@@ -464,12 +475,25 @@ ssize_t send_res(int fd, char* res)
 	return old_send(fd, new_res, len, 0);
 }
 
+/* Helper function to convert from `int` to a `char` array, using Network (Big) endian. */
+char* encode_int(int num, char* out)
+{
+	out[0] = num >> 24;
+	out[1] = num >> 16;
+	out[2] = num >> 8;
+	out[3] = num;
+	return out;
+}
+
 /* Constructor, gets called before MCPI itself. */
 void __attribute__((constructor)) init()
 {
 	char* config_path;
 	char* username_path;
+	char* secret_path;
+	FILE* secret_file;
 	char tmp[7];
+	char secret[11];
 	int sz;
 
 	old_fopen = dlsym(RTLD_NEXT, "fopen");
@@ -513,8 +537,32 @@ void __attribute__((constructor)) init()
 	}
 	strcpy((char*)0x105263, modpi_data.player_name);
 
+	secret_path = malloc(strlen(config_path) + 10);
+	strcpy(secret_path, config_path);
+	strcat(secret_path, "secret.txt");
+	secret_file = fopen(secret_path, "r+");
+	if (secret_file == NULL)
+	{
+		secret_file = fopen(secret_path, "w+");
+		/* No 64-bit numbers. */
+		fprintf(secret_file, "%010i", rand() % 0xffffffff);
+	}
+	fseek(secret_file, 0x00, SEEK_SET);
+	
+	sz = fread(secret, 1, 10, secret_file);
+	if (sz > 0)
+	{
+		modpi_data.is_sec = 0;
+		encode_int(atoi(secret), modpi_data.secret);
+	} else
+	{
+		modpi_data.is_sec = 1;
+	}
+
+	fclose(secret_file);
 	free(config_path);
 	free(username_path);
+	free(secret_path);
 	return;
 }
 

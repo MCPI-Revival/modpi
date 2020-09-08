@@ -39,6 +39,8 @@ typedef struct modpi_data_t {
 	char* server_name;
 	float ambient[4];
 	act_mode_t acting_as;
+	char secret[4];
+	char is_sec;
 } modpi_data_t;
 
 #endif /* TYPES_H */

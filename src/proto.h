@@ -53,5 +53,6 @@ int api_setup();
 int api_kill();
 int unprotect(unsigned int addr);
 ssize_t send_res(int fd, char* res);
+char* encode_int(int num, char* out);
 
 #endif /* PROTO_H */
