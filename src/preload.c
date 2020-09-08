@@ -45,9 +45,9 @@
 
 #ifndef MOD_PI
 #define MP_MAJOR 0
-#define MP_MINOR 4
+#define MP_MINOR 5
 #define MP_PATCH 0
-#define MOD_PI "v0.4.0"
+#define MOD_PI "v0.5.0"
 
 #endif /* MOD_PI */
 
