@@ -1,27 +1,12 @@
 # ModPi
-Minecraft Pi API extensions.
+Minecraft Pi API extensions ported to MCPI-Reborn.
 
 ## Getting started
 ### Prerequisites
-To use the ModPi API you need to have `Python >= 3.7.x` and [`libmcpi`](https://github.com/MCPI-Devs/libmcpi) pre-installed.
+To use the ModPi API you need to have [MCPI_Reborn](https://gitea.thebrokenrail.com/TheBrokenRail/minecraft-pi-reborn) installed.
 
 ### Installation
-To install ModPi, download or clone the repository, install the Python 3.x module using `pip` and build the patch using `make`:
-```shell
-git clone https://github.com/MCPI-Devs/modpi.git
-cd modpi
-pip3 install .
-make
-```
-
-You can also install it from the Packagecloud Debian repository:
-```shell
-# If you didn't add the repository yet
-curl -s https://packagecloud.io/install/repositories/Alvarito050506/mcpi-devs/script.deb.sh | sudo bash
-
-# Now the actual installation
-sudo apt-get install libmodpi
-```
+Code is unfinished! Check back in a week or 2.
 
 ## API
 The ModPi API exposes the following methods through the `ModPi` class:
